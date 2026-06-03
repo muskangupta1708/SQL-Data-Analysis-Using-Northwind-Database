@@ -1,0 +1,106 @@
+sql queries
+
+1.Retrieve All Orders
+select * from orders
+
+2.Orders Above ₹5000
+select order_id,sum(unit_price * quantity * (1-discount)) as orders_amount
+from order_details
+group by order_id
+having sum(unit_price * quantity * (1-discount))>5000
+
+3.Sort Orders by Amount
+select order_id,sum(unit_price * quantity * (1-discount)) as orders_amount
+from order_details
+group by order_id
+having sum(unit_price * quantity * (1-discount))>5000
+ order by orders_amount desc
+
+4. Total Sales Generated
+SELECT ROUND(SUM(unitprice * quantity * (1-discount)), 2) AS total_sales
+FROM order_details;
+
+5. Average Order Value
+select ROUND (avg(total_order),2)
+from(
+select order_id,
+sum(unit_price*quantity*(1-discount)) as total_order
+from order_details
+group by order_id)
+
+6. Number of Orders by Customer
+SELECT company_name,count(order_id) as total_orders
+from customers c
+join orders o
+on c.customer_id = o.customer_id 
+group by company_name
+order by total_orders desc
+
+7. Total Revenue by Category
+SELECT category_name, sum(od.unit_price* od.quantity*(1-discount))as revenue
+from categories c
+join products p
+on c.category_id = p.category_id
+join order_details od
+on p.product_id = od.product_id
+group by category_name
+order by revenue desc
+
+8. Customer Order Details
+select company_name,order_id,order_date,ship_country
+from customers c
+inner join orders o
+on c.customer_id = o.customer_id
+
+9.Customers Without Orders
+select company_name, c.customer_id
+from customers c
+left join orders o
+on c.customer_id = o.customer_id
+where order_id is null
+
+10. Top 5 Customers by Spending
+select company_name, sum(unit_price*quantity*(1-discount)) as total_spent
+from customers c
+join orders o
+on c.customer_id = o.customer_id
+join order_details od
+on o.order_id = od.order_id
+group by company_name
+order by total_spent desc 
+limit 5
+
+11.Most Sold Products
+select product_name,
+sum (od.quantity) as totol_sold
+from products p
+left join order_details od
+on p.product_id = od.product_id
+group by product_name
+limit 10
+
+12.Create a View
+CREATE VIEW customer_sales_summary AS
+SELECT c.customer_id,
+       c.company_name,
+      
+       SUM(od.unit_price * od.quantity * (1-od.discount))
+        AS total_sales
+FROM customers c
+JOIN orders o
+ON c.customer_id = o.customer_id
+JOIN order_details od
+ON o.order_id = od.order_id
+GROUP BY c.customer_id,
+         c.company_name;
+
+13.Query the View
+SELECT *
+FROM customer_sales_summary
+ORDER BY total_sales DESC;
+
+14.Create an Index
+CREATE INDEX idx_orders_customerid
+ON orders(customerid);
+
+
